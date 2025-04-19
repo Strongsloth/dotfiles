@@ -6,6 +6,6 @@ Slothdev's [<ins>**dotfiles**</ins>](https://Github.com/Strongsloth/dotfiles).
  - Neovim Configuration
  - Starship Configuration
 
-!> [!NOTE]
+> [!NOTE]
 > There is more to go.
 > So stay tuned!
