@@ -33,6 +33,41 @@ return {
     },
     -- Required by dapui
     {
+      "mxsdev/nvim-dap-vscode-js",
+      config = function()
+        ---@diagnostic disable-next-line: missing-fields
+        require("dap-vscode-js").setup {
+          -- Path of node executable. Defaults to $NODE_PATH, and then "node"
+          node_path = "node",
+
+          -- Path to vscode-js-debug installation.
+          debugger_path = vim.fn.resolve(vim.fn.stdpath "data" .. "/lazy/vscode-js-debug"),
+
+          -- Command to use to launch the debug server. Takes precedence over "node_path" and "debugger_path"
+          debugger_cmd = { "js-debug-adapter" },
+
+          -- which adapters to register in nvim-dap
+          adapters = {
+            "chrome",
+            "pwa-node",
+            "pwa-chrome",
+            "pwa-msedge",
+            "pwa-extensionHost",
+            "node-terminal",
+          },
+
+          -- Path for file logging
+          -- log_file_path = "(stdpath cache)/dap_vscode_js.log",
+
+          -- Logging level for output to file. Set to false to disable logging.
+          -- log_file_level = false,
+
+          -- Logging level for output to console. Set to false to disable console output.
+          -- log_console_level = vim.log.levels.ERROR,
+        }
+      end,
+    },
+    {
       "Joakker/lua-json5",
       -- This plugin has a PowerShell build script.
       -- If you encounter issues related to lua-json5, manually navigate to the plugin directory
@@ -119,6 +154,32 @@ return {
       desc = "DAP: Toggle UI",
     },
     -- Test keymap to verify loading
+    {
+      "<Leader>dt",
+      function()
+        print "Attempting to load launch.json..."
+        if vim.fn.filereadable ".vscode/launch.json" then
+          local dap_vscode = require "dap.ext.vscode"
+          dap_vscode.load_launchjs(nil, {
+            ["pwa-node"] = jslanguages,
+            ["node"] = jslanguages,
+            ["chrome"] = jslanguages,
+            ["pwa-chrome"] = jslanguages,
+          })
+          print "launch.json loaded. Attempting to continue (may need to launch manually)."
+        else
+          print "No .vscode/launch.json found."
+        end
+        -- Note: This will try to continue *without* starting a new session unless one is already active from the loaded launch.json.
+        -- You might want a launch command here instead if the goal is to start based on launch.json.
+        -- require("dap").continue()
+        -- A more typical pattern might be to select a configuration from launch.json and then launch it.
+        -- require("dap").list_configs() -- You could list configs first
+        -- require("dap").launch(selected_config_name) -- Then launch a specific one
+        -- For simplicity here, we'll just rely on the launch.json loading.
+      end,
+      desc = "Run with Args (via launch.json)",
+    },
   },
 
   -- This config function runs *after* the plugin is loaded
@@ -188,26 +249,67 @@ return {
     ------------------------------- C/C++/Rust Adapter (lldb-dap or codelldb)
 
     -- JS configurations (using adapters registered by dap-vscode-js)
-
-    dap.adapters["pwa-node"] = {
-      type = "server",
-      host = "localhost",
-      port = "${port}",
-      executable = {
-        command = "node",
-        -- 💀 Make sure to update this path to point to your installation
-        args = { vim.fn.stdpath "config" .. "/js-debug/src/dapDebugServer.js", "${port}" },
-      },
-    }
-    dap.configurations.javascript = {
-      {
-        type = "pwa-node",
-        request = "launch",
-        name = "Launch file",
-        program = "${file}",
-        cwd = "${workspaceFolder}",
-      },
-    }
+    for _, language in ipairs(jslanguages) do -- Corrected ipairs usage
+      dap.configurations[language] = {
+        -- Debug single nodejs files
+        {
+          type = "pwa-node",
+          request = "launch",
+          name = "Launch file",
+          -- Add more print statements to see the resolved paths and confirm function execution
+          program = function()
+            print "Executing program function..."
+            local file_path = vim.api.nvim_buf_get_name(0)
+            print("vim.api.nvim_buf_get_name(0) returned:", vim.inspect(file_path)) -- Use vim.inspect for clarity
+            -- If file_path is empty or invalid, you might need a fallback or error handling
+            if file_path == "" or file_path == nil then
+              print "Error: program path is empty or nil!"
+              -- Consider returning nil or an empty string here if the file is not valid,
+              -- although this might cause a different DAP error.
+            end
+            print("DAP Launch: program =", file_path)
+            return file_path
+          end,
+          -- Changed cwd from "${workspaceFolder}" to vim.fn.getcwd()
+          -- to potentially avoid a Vimscript error related to workspace folder resolution.
+          -- If you still get ENOENT, verify the path of the file you are debugging
+          -- and what vim.fn.getcwd() returns in that context.
+          cwd = function()
+            local cwd_path = vim.fn.getcwd()
+            print("DAP Launch: cwd =", cwd_path)
+            return cwd_path
+          end,
+          sourceMaps = true,
+        },
+        -- Debug nodejs processes (make sure to add --inspect when you run the process)
+        {
+          type = "pwa-node",
+          request = "attach",
+          name = "Attach",
+          processId = require("dap.utils").pick_process,
+          -- Changed cwd from "${workspaceFolder}" to vim.fn.getcwd()
+          -- to potentially avoid a Vimscript error related to workspace folder resolution.
+          cwd = vim.fn.getcwd(),
+          sourceMaps = true,
+        },
+        -- Debug web applications (client side)
+        {
+          type = "pwa-chrome",
+          request = "launch",
+          name = "Launch & Debug Chrome",
+          -- The 'url' field here expects a string or a function that returns a string *synchronously*.
+          -- Interactive input like vim.ui.input is asynchronous and won't work directly here.
+          -- If you need interactive launch, consider creating a separate keymap function that
+          -- prompts for the URL first, then calls `require("dap").launch()`.
+          -- For a simple launch, you can hardcode a common development URL or use a placeholder.
+          url = "http://localhost:3000", -- Example placeholder URL
+          webRoot = vim.fn.getcwd(), -- Consider using "${workspaceFolder}" here as well if your web root is relative to the workspace
+          protocol = "inspector",
+          sourceMaps = true,
+          userDataDir = false,
+        },
+      }
+    end
     print "--- JS configurations set ---"
 
     -- C/C++/Rust Adapters
@@ -216,7 +318,13 @@ return {
       command = "C:/Program Files/LLVM/bin/lldb-dap.exe", -- Ensure path is correct
       name = "lldb",
     }
+    dap.adapters.codelldb = {
+      type = "executable",
+      command = "codelldb", -- or if not in $PATH: "/absolute/path/to/codelldb"
 
+      -- On windows you may have to uncomment this:
+      detached = false,
+    }
     print "--- DAP adapters configured ---"
 
     -- C/C++/Rust Configurations
@@ -224,10 +332,20 @@ return {
       name = "Launch file",
       type = "lldb", -- or "codelldb"
       request = "launch",
-      program = vim.fn.input("Path to executable: ", vim.fn.getcwd() .. "/", "file"),
+      program = function()
+        -- This function prompts for the executable path, which is good for flexibility.
+        -- Ensure the path entered here is correct and the executable exists.
+        local program_path = vim.fn.input("Path to executable: ", vim.fn.getcwd() .. "/", "file")
+        print("DAP Launch (C/C++/Rust): program =", program_path)
+        return program_path
+      end,
       -- Changed cwd from "${workspaceFolder}" to vim.fn.getcwd()
       -- to potentially avoid a Vimscript error related to workspace folder resolution.
-      cwd = "${workspaceFolder}",
+      cwd = function()
+        local cwd_path = vim.fn.getcwd()
+        print("DAP Launch (C/C++/Rust): cwd =", cwd_path)
+        return cwd_path
+      end,
       stopOnEntry = false,
       args = {},
       -- console = "integratedTerminal",

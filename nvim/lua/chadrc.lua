@@ -7,7 +7,7 @@ local M = {}
 
 M.base46 = {
   theme = "doomchad",
-  transparency = false,
+  transparency = true,
   theme_toggle = { "catppuccin", "doomchad" },
   hl_override = {
     Comment = { italic = true },
@@ -31,7 +31,17 @@ M.base46 = {
   },
 }
 
-M.nvdash = { load_on_startup = true }
+M.nvdash = {
+  load_on_startup = true,
+  header = {
+    "███████╗██╗      ██████╗ ████████╗██╗  ██╗   ██████╗ ███████╗██╗   ██╗",
+    "██╔════╝██║     ██╔═══██╗╚══██╔══╝██║  ██║   ██╔══██╗██╔════╝██║   ██║",
+    "███████╗██║     ██║   ██║   ██║   ███████║   ██║  ██║█████╗  ██║   ██║",
+    "╚════██║██║     ██║   ██║   ██║   ██╔══██║   ██║  ██║██╔══╝  ╚██╗ ██╔╝",
+    "███████║███████╗╚██████╔╝   ██║   ██║  ██║██╗██████╔╝███████╗ ╚████╔╝ ",
+    "╚══════╝╚══════╝ ╚═════╝    ╚═╝   ╚═╝  ╚═╝╚═╝╚═════╝ ╚══════╝  ╚═══╝  ",
+  },
+}
 M.ui = {
   cmp = {
     style = "atom_colored",

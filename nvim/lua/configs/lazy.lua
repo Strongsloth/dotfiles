@@ -20,11 +20,11 @@ return {
         "getscriptPlugin",
         "gzip",
         "logipat",
-        "netrw",
-        "netrwPlugin",
-        "netrwSettings",
-        "netrwFileHandlers",
-        "matchit",
+        -- "netrw",
+        -- "netrwPlugin",
+        -- "netrwSettings",
+        -- "netrwFileHandlers",
+        -- "matchit",
         "tar",
         "tarPlugin",
         "rrhelper",
@@ -44,4 +44,6 @@ return {
       },
     },
   },
+
+  timeout = 600000,
 }

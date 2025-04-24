@@ -7,6 +7,16 @@ local autocmd = vim.api.nvim_create_autocmd
 
 map("n", ";", ":", { desc = "CMD enter command mode" })
 map("i", "jk", "<ESC>")
+map({ "n", "v" }, "dc", "ggVGd", { desc = "Delete Content" })
+map("n", "<C-A>", "ggVG", { desc = "Select all text." })
+map("n", "<Leader>ec", function()
+  vim.cmd "tabnew"
+  local conf = vim.fn.stdpath "config"
+  vim.cmd("tcd " .. conf .. " | e init.lua")
+end, { desc = "edit config" })
+map("n", "<Leader>ca", function()
+  vim.lsp.buf.code_action()
+end, { desc = "Open Code Actions" })
 
 autocmd("BufDelete", {
   callback = function()
@@ -32,7 +42,16 @@ autocmd("BufReadPost", {
   end,
 })
 
-map("n", "<C-A>", "ggVG", { desc = "Select all text." })
+autocmd("User", {
+  pattern = "MarkviewAttach",
+  callback = function(event)
+    --- This will have all the data you need.
+    local data = event.data
+
+    vim.print(data)
+  end,
+})
+
 vim.schedule(function()
   vim.cmd ":ShowkeysToggle"
 end)

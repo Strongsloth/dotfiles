@@ -4,14 +4,14 @@ return {
     cmd = function()
       vim.cmd ":MarkdownPreview"
     end,
-    rtxt = "MarkdownPreview",
+    rtxt = ":MarkdownPreview",
   },
   {
     name = "Stop Markdown Preview",
     cmd = function()
       vim.cmd ":MarkdownPreviewStop"
     end,
-    rtxt = "MarkdownPreviewStop",
+    rtxt = ":MarkdownPreviewStop",
   },
   { name = "separator" },
   {
@@ -19,6 +19,6 @@ return {
     cmd = function()
       vim.cmd ":MarkdownPreviewToggle"
     end,
-    rtxt = "MarkdownPreviewToggle",
+    rtxt = ":MarkdownPreviewToggle",
   },
 }

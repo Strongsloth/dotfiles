@@ -21,11 +21,21 @@ return {
   },
 
   { name = "separator" },
-
   {
     name = "  Lsp Actions",
     hl = "Exblue",
     items = "lsp",
+  },
+  { name = "separator" },
+  {
+    name = "  Color Picker",
+    hl = "Exyellow",
+    items = "colors",
+  },
+  {
+    name = " Markdown",
+    hl = "Exgreen",
+    items = "markdown",
   },
 
   { name = "separator" },
@@ -37,13 +47,13 @@ return {
       local conf = vim.fn.stdpath "config"
       vim.cmd("tcd " .. conf .. " | e init.lua")
     end,
-    rtxt = "ed",
+    rtxt = "<leader>ec",
   },
 
   {
     name = "Copy Content",
     cmd = "%y+",
-    rtxt = "<C-c>",
+    rtxt = "<C-a><C-c>",
   },
 
   {
@@ -72,19 +82,5 @@ return {
         vim.fn.termopen { vim.o.shell, "-c", cmd .. " ; " .. vim.o.shell }
       end
     end,
-  },
-
-  { name = "separator" },
-
-  {
-    name = "  Color Picker",
-    hl = "Exyellow",
-    items = "colors",
-  },
-  { name = "separator" },
-  {
-    name = " Markdown",
-    hl = "Exblue",
-    items = "markdown",
   },
 }

@@ -11,8 +11,9 @@ return {
       "stylua",
       "prettier",
       "clangd",
-      "clang-format",
       "marksman",
+      "codelldb",
+      "js-debug-adapter",
     },
   },
 }
